@@ -1,0 +1,3 @@
+git remote add origin https://github.com/akash6998s/langar.git
+git branch -M main
+git push -u origin main
