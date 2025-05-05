@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import AllExpensesTable from "../components/AllExpensesTable";
 import DonationsTable from "../components/DonationsTable";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png";
+// import logo from "../assets/logo.png";
 
 const getDaysInMonth = (year, monthName) => {
   const monthIndex = new Date(`${monthName} 1, ${year}`).getMonth();
@@ -28,11 +28,29 @@ export default function AttendanceTable() {
     totalDonations: 0,
     totalExpenses: 0,
     netAmount: 0,
-  }); // New state for summary data
+  });
+  const [additionalData, setAdditionalData] = useState();
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch attendance data
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          "https://langar-db-csvv.onrender.com/additional"
+        );
+        const result = await response.json();
+        console.log(result);
+        setAdditionalData(result.donatedRemoved);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
     fetch("https://langar-db-csvv.onrender.com/attendance")
       .then((res) => res.json())
       .then((data) => {
@@ -46,17 +64,18 @@ export default function AttendanceTable() {
             ? currentYear
             : years[0];
           const months = Object.keys(result[defaultYear]);
-          const defaultMonth = months.includes(
-            new Date().toLocaleString("default", { month: "long" })
-          )
-            ? new Date().toLocaleString("default", { month: "long" })
+          const currentMonth = new Date().toLocaleString("default", {
+            month: "long",
+          });
+          const defaultMonth = months.includes(currentMonth)
+            ? currentMonth
             : months[0];
+
           setSelectedYear(defaultYear);
           setSelectedMonth(defaultMonth);
         }
       });
 
-    // Fetch student names
     fetch("https://langar-db-csvv.onrender.com/member-full-details")
       .then((res) => res.json())
       .then((data) => {
@@ -68,12 +87,11 @@ export default function AttendanceTable() {
         setStudents(formatted);
       });
 
-    // Fetch overall summary data
     fetch("https://langar-db-csvv.onrender.com/overall-summary")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          setSummaryData(data.data); // Store the summary data
+          setSummaryData(data.data);
         }
       });
   }, []);
@@ -94,35 +112,34 @@ export default function AttendanceTable() {
 
   return (
     <div className="p-4 sm:p-6 bg-gradient-to-br from-yellow-50 to-orange-100 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        {/* Logo on the left with half width */}
-        <div className="w-1/2 flex justify-start">
+      <div className="w-full flex justify-end px-6 py-4 mb-6">
+        {/* <div className="w-1/2 flex justify-start">
           <img className="w-24 h-auto object-contain" src={logo} alt="logo" />
-        </div>
-
-        {/* Button on the right with half width */}
-        <div className="w-1/2 flex justify-end">
-          <button
-            onClick={() => navigate("/superadminlogin")}
-            className="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-5 py-2 rounded-lg shadow-md transition"
-          >
-            Super Admin
-          </button>
-        </div>
+        </div> */}
+        <button
+          onClick={() => navigate("/superadminlogin")}
+          className="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-5 py-2 rounded-lg shadow-md transition"
+        >
+          Super Admin
+        </button>
       </div>
+
       <h1 className="text-2xl text-center font-bold text-orange-700 mb-6 underline decoration-orange-400">
         श्री सुदर्शन सेना भोजन वितरण
       </h1>
 
-      {/* Summary Data Boxes */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
         <div className="p-4 bg-orange-200 rounded-lg shadow-md text-center">
           <h3 className="text-lg font-semibold text-orange-800">
             Total Donations
           </h3>
           <p className="text-2xl text-green-600">
-            {summaryData.totalDonations}
+            {summaryData.totalDonations + additionalData}
           </p>
+          {/* <p className="text-2xl font-bold text-[#6b2400]">
+            ₹ {additionalData}
+          </p> */}
         </div>
         <div className="p-4 bg-orange-200 rounded-lg shadow-md text-center">
           <h3 className="text-lg font-semibold text-orange-800">
@@ -132,45 +149,30 @@ export default function AttendanceTable() {
         </div>
         <div className="p-4 bg-orange-200 rounded-lg shadow-md text-center">
           <h3 className="text-lg font-semibold text-orange-800">Net Amount</h3>
-          <p className="text-2xl text-blue-600">{summaryData.netAmount}</p>
+          <p className="text-2xl text-blue-600">
+            {summaryData.netAmount + additionalData}
+          </p>
         </div>
       </div>
 
-      {/* Toggle Buttons for Attendance, Expense, and Donations */}
+      {/* Navigation Tabs */}
       <div className="flex flex-wrap justify-center gap-4 mb-6">
-        <button
-          onClick={() => setActiveTab("attendance")}
-          className={`px-2 py-2 border rounded-md w-24 sm:w-40 text-center ${
-            activeTab === "attendance"
-              ? "bg-orange-500 text-white"
-              : "bg-white text-orange-500"
-          }`}
-        >
-          Attendance
-        </button>
-        <button
-          onClick={() => setActiveTab("expense")}
-          className={`px-2 py-2 border rounded-md w-24 sm:w-40 text-center ${
-            activeTab === "expense"
-              ? "bg-orange-500 text-white"
-              : "bg-white text-orange-500"
-          }`}
-        >
-          Expenses
-        </button>
-        <button
-          onClick={() => setActiveTab("donations")}
-          className={`px-2 py-2 border rounded-md w-24 sm:w-40 text-center ${
-            activeTab === "donations"
-              ? "bg-orange-500 text-white"
-              : "bg-white text-orange-500"
-          }`}
-        >
-          Donations
-        </button>
+        {["attendance", "expenses", "donations"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-2 py-2 border rounded-md w-24 sm:w-40 text-center ${
+              activeTab === tab
+                ? "bg-orange-500 text-white"
+                : "bg-white text-orange-500"
+            }`}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
       </div>
 
-      {/* Dropdowns for Year and Month (only show for Attendance tab) */}
+      {/* Filters for Attendance */}
       {activeTab === "attendance" && (
         <div className="flex flex-wrap justify-center gap-4 mb-6">
           <select
@@ -202,7 +204,7 @@ export default function AttendanceTable() {
         </div>
       )}
 
-      {/* Render Table based on Active Tab */}
+      {/* Conditional Rendering of Table */}
       {activeTab === "attendance" && selectedYear && selectedMonth ? (
         <div className="overflow-x-auto overflow-y-auto max-h-[500px] shadow-md rounded-lg">
           <table className="w-full text-sm text-center border border-orange-300 bg-white rounded">

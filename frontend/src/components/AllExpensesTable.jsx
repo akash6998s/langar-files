@@ -35,7 +35,7 @@ const AllExpensesTable = () => {
   }, []);
 
   return (
-    <div className="py-4 max-w-7xl mx-auto shadow-2xl rounded-lg bg-gradient-to-r from-orange-100 to-yellow-200">
+    <div className="py-8 max-w-7xl mx-auto shadow-2xl rounded-lg bg-gradient-to-r from-orange-100 to-yellow-200">
       <h2 className="text-3xl font-semibold text-center text-orange-700 mb-8 tracking-wide">
         📜 सभी खर्चों की जानकारी
       </h2>
@@ -55,7 +55,7 @@ const AllExpensesTable = () => {
               {expenses.map((item, index) => (
                 <tr
                   key={index}
-                  className="hover:bg-orange-50 transition-transform duration-200"
+                  className="hover:bg-orange-50 transition-transform duration-200 ease-in-out transform hover:scale-105"
                 >
                   <td className="px-6 py-4 font-medium">{item.year}</td>
                   <td className="px-6 py-4 capitalize">{item.month}</td>
