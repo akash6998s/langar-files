@@ -1,32 +1,23 @@
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open('v1').then((cache) => {
-      return cache.addAll([
-        '/index.html',   // Always cache the essential HTML
-        '/logo192.png',  // Cache the logo for PWA
-        '/logo512.png',  // Cache the logo for PWA
-        // Dynamically cache all the static assets generated during build
-      ]);
-    })
-  );
-});
-
-self.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;  // Serve from cache
-      }
+      fetch(event.request)
+          .then(response => {
+              // Clone the response before consuming the body
+              const clonedResponse = response.clone();
 
-      // Otherwise, fetch the request and cache it for future use
-      return fetch(event.request).then((response) => {
-        if (event.request.url.indexOf('http') === 0) {
-          caches.open('v1').then((cache) => {
-            cache.put(event.request, response.clone());
-          });
-        }
-        return response;
-      });
-    })
+              // Cache the cloned response
+              caches.open('my-cache').then(cache => {
+                  cache.put(event.request, clonedResponse);
+              });
+
+              // Return the original response (not the cloned one) to the browser
+              return response;
+          })
+          .catch(error => {
+              // If fetching fails (e.g., offline), serve from the cache
+              return caches.match(event.request).then(cachedResponse => {
+                  return cachedResponse || Response.error();
+              });
+          })
   );
 });

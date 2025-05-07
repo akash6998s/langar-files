@@ -40,39 +40,12 @@ const SuperAdmin = () => {
   });
 
   const [donationData, setDonationData] = useState({
-    amount: "",
     rollNo: "",
+    amount: "",
     month: "",
     year: "",
+    type: "", // ✅ initialize type
   });
-
-  const [activeSection, setActiveSection] = useState("attendance");
-  const [showRollNumberPopup, setShowRollNumberPopup] = useState(false);
-  const [availableRollNumbers, setAvailableRollNumbers] = useState([]);
-
-  const sections = [
-    { key: "attendance", label: "Add Attendance" },
-    { key: "deleteAttendance", label: "Remove Attendance" },
-    { key: "expense", label: "Add Expense" },
-    { key: "donation", label: "Add Donation" },
-    { key: "addMember", label: "Add Member" },
-    { key: "deleteMember", label: "Remove Member" },
-  ];
-  const [rollNumbers, setRollNumbers] = useState([]);
-  useEffect(() => {
-    const fetchRollNumbers = async () => {
-      try {
-        const response = await axios.get(
-          "https://langar-db-csvv.onrender.com/empty-rollno"
-        );
-        setRollNumbers(response.data);
-      } catch (error) {
-        console.error("Error fetching roll numbers:", error);
-      }
-    };
-
-    fetchRollNumbers();
-  }, []);
 
   const [addMemberData, setAddMemberData] = useState({
     roll_no: "",
@@ -81,73 +54,86 @@ const SuperAdmin = () => {
     phone_no: "",
     address: "",
     isAdmin: false,
+    img: "", // <-- new key for filename
   });
 
-  // Handle form input changes
-  const handleMemberData = (e) => {
-    const { name, value } = e.target;
-    setAddMemberData({
-      ...addMemberData,
-      [name]: value,
-    });
-  };
+  // State for editing member
+  const [editMemberData, setEditMemberData] = useState({
+    roll_no: "",
+    name: "",
+    last_name: "",
+    phone_no: "",
+    address: "",
+    isAdmin: false,
+  });
 
-  const handleIsAdminCheckbox = () => {
-    setAddMemberData({
-      ...addMemberData,
-      isAdmin: !addMemberData.isAdmin,
-    });
-  };
+  const [activeSection, setActiveSection] = useState("attendance");
+  const [showRollNumberPopup, setShowRollNumberPopup] = useState(false);
+  const [availableRollNumbers, setAvailableRollNumbers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
 
-  const handleAddMember = async (e) => {
-    e.preventDefault();
+  const [modalMessage, setModalMessage] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [members, setMembers] = useState([]);
 
-    try {
-      const response = await fetch(
-        "https://langar-db-csvv.onrender.com/add-member",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(addMemberData),
-        }
+  const sections = [
+    { key: "attendance", label: "Add Attendance" },
+    { key: "donation", label: "Add Donation" },
+    { key: "expense", label: "Add Expense" },
+    { key: "editMember", label: "Add / Edit Member" },
+    { key: "deleteMember", label: "Remove Member" },
+    { key: "deleteAttendance", label: "Remove Attendance" },
+  ];
+
+  // Populate edit form when roll number is selected
+  useEffect(() => {
+    if (editMemberData.roll_no) {
+      const selected = members.find(
+        (member) => member.roll_no === editMemberData.roll_no
       );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        alert(data.message || "Failed to add member");
-        throw new Error(data.message || "Failed to add member");
+      if (selected) {
+        setEditMemberData({
+          roll_no: selected.roll_no,
+          name: selected.name,
+          last_name: selected.last_name,
+          phone_no: selected.phone_no,
+          address: selected.address,
+          isAdmin: selected.isAdmin || false,
+        });
       }
-
-      console.log("Member added successfully:", data);
-      alert("Member added successfully!");
-
-      // ✅ Reset form fields
-      setAddMemberData({
-        roll_no: "",
-        name: "",
-        last_name: "",
-        phone_no: "",
-        address: "",
-        isAdmin: false,
-      });
-    } catch (error) {
-      console.error("Error:", error);
     }
-  };
+  }, [editMemberData.roll_no, members]);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const res = await fetch("https://langar-db-csvv.onrender.com/member-full-details");
+        const data = await res.json();
+        if (data && Array.isArray(data)) {
+          setMembers(data);
+        } else {
+          console.error("Data is not an array or invalid structure.");
+        }
+      } catch (err) {
+        console.error("Error fetching members:", err);
+      }
+    };
+
+    fetchMembers();
+  }, []);
 
   useEffect(() => {
     const fetchRollNumbers = async () => {
       try {
-        const res = await fetch(
-          "https://langar-db-csvv.onrender.com/member-full-details"
-        );
+        setLoading(true);
+        const res = await fetch("https://langar-db-csvv.onrender.com/member-full-details");
         const data = await res.json();
         setAvailableRollNumbers(data.map((m) => m.roll_no));
-      } catch (err) {
-        console.error("Failed to fetch roll numbers:", err);
+      } catch (error) {
+        console.error("Error fetching main data:", error);
+      } finally {
+        setLoading(false); // Data loading complete
       }
     };
     fetchRollNumbers();
@@ -155,19 +141,6 @@ const SuperAdmin = () => {
 
   const navigate = useNavigate(); // Call at the top level
 
-  useEffect(() => {
-    const handleBeforeUnload = (event) => {
-      event.preventDefault();
-      event.returnValue = ""; // Trigger prompt message
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    // Cleanup the event listener when the component unmounts
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, []);
 
   useEffect(() => {
     const superAdminId = sessionStorage.getItem("superAdminId");
@@ -200,6 +173,101 @@ const SuperAdmin = () => {
   const handleMonthYearChange = (type, value) => {
     setAttendanceData((prev) => ({ ...prev, [type]: value, day: "1" }));
   };
+  const handleRollNoChange = (e) => {
+    const selectedRollNo = e.target.value;
+    setEditMemberData({
+      ...editMemberData,
+      roll_no: selectedRollNo,
+    });
+
+    // Find the selected member by roll_no and update the form fields
+    const selectedMember = members.find(
+      (member) => member.roll_no === parseInt(selectedRollNo)
+    );
+
+    if (selectedMember) {
+      setEditMemberData({
+        roll_no: selectedMember.roll_no,
+        name: selectedMember.name,
+        last_name: selectedMember.last_name,
+        phone_no: selectedMember.phone_no,
+        address: selectedMember.address,
+        isAdmin: selectedMember.isAdmin,
+      });
+    }
+  };
+
+  // Handle input change for form fields
+  const handleEditMemberData = (e) => {
+    const { name, value } = e.target;
+    setEditMemberData({
+      ...editMemberData,
+      [name]: value,
+    });
+  };
+
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Handle the file upload logic (e.g., uploading the file to your server or saving it locally)
+      setEditMemberData({
+        ...editMemberData,
+        image: file, // You can store the file or its URL
+      });
+    }
+  };
+
+  const handleEditMember = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+
+    // Append form data
+    formData.append("roll_no", editMemberData.roll_no);
+    formData.append("name", editMemberData.name);
+    formData.append("last_name", editMemberData.last_name);
+    formData.append("phone_no", editMemberData.phone_no);
+    formData.append("address", editMemberData.address);
+
+    if (editMemberData.image) {
+      formData.append("image", editMemberData.image);
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await fetch("https://langar-db-csvv.onrender.com/edit-member", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update member");
+      }
+
+      const result = await response.json();
+      setModalMessage(result.message || "Member updated successfully!");
+      setShowModal(true);
+    } catch (error) {
+      console.error("Error updating member:", error);
+      const message =
+        error.response?.data?.error ||
+        "Failed to update member. Please try again.";
+      setModalMessage(message);
+      setShowModal(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUploadedImages = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPreviewImage(URL.createObjectURL(file));
+      // You can also store the file in editMemberData if needed
+      setEditMemberData({ ...editMemberData, image: file });
+    }
+  };
 
   const handleRollNoClick = (rollNo) => {
     setAttendanceData((prev) => {
@@ -214,7 +282,11 @@ const SuperAdmin = () => {
     const { attendance, month, year, day } = attendanceData;
     const filtered = Object.keys(attendance).filter((r) => attendance[r]);
 
-    if (filtered.length === 0) return alert("No roll numbers selected.");
+    if (filtered.length === 0) {
+      setModalMessage("No roll numbers selected.");
+      setShowModal(true);
+      return;
+    }
 
     // Set input value and copy to clipboard
     if (inputRef.current) {
@@ -226,105 +298,149 @@ const SuperAdmin = () => {
     }
 
     try {
-      const res = await axios.post(
-        "https://langar-db-csvv.onrender.com/update-attendance",
-        {
-          attendance: filtered,
-          month,
-          year: Number(year),
-          day: Number(day),
-        }
-      );
-      alert(res.data.message);
+      setLoading(true);
+      const res = await axios.post("https://langar-db-csvv.onrender.com/update-attendance", {
+        attendance: filtered,
+        month,
+        year: Number(year),
+        day: Number(day),
+      });
+
+      setModalMessage(res.data.message || "Attendance updated successfully!");
+      setShowModal(true);
+
       setAttendanceData((prev) => ({ ...prev, attendance: {} }));
-    } catch (err) {
-      console.error("Error adding attendance:", err);
-      alert("Failed to add attendance.");
+    } catch (error) {
+      console.error("Error submitting attendance:", error);
+      setModalMessage("Failed to update attendance. Please try again.");
+      setShowModal(true);
+    } finally {
+      setLoading(false);
     }
   };
 
   const deleteAttendance = async () => {
     const { attendance, month, year, day } = attendanceData;
     const filtered = Object.keys(attendance).filter((r) => attendance[r]);
-    if (filtered.length === 0) return alert("No roll numbers selected.");
+
+    if (filtered.length === 0) {
+      setModalMessage("No roll numbers selected.");
+      setShowModal(true);
+      return;
+    }
+
     try {
-      const res = await axios.post(
-        "https://langar-db-csvv.onrender.com/delete-attendance", // Ensure backend route exists
-        { attendance: filtered, month, year: Number(year), day: Number(day) }
-      );
-      alert(res.data.message);
+      setLoading(true);
+
+      const res = await axios.post("https://langar-db-csvv.onrender.com/delete-attendance", {
+        attendance: filtered,
+        month,
+        year: Number(year),
+        day: Number(day),
+      });
+
+      setModalMessage(res.data.message || "Attendance deleted successfully!");
+      setShowModal(true);
       setAttendanceData((prev) => ({ ...prev, attendance: {} }));
-    } catch (err) {
-      console.error("Error deleting attendance:", err);
+    } catch (error) {
+      console.error("Error deleting attendance:", error);
       const message =
-        err.response?.data?.error || "Failed to delete attendance.";
-      alert(message);
+        error.response?.data?.error || "Failed to delete attendance.";
+      setModalMessage(message);
+      setShowModal(true);
+      setLoading(false);
     }
   };
 
   const addExpense = async () => {
     const { amount, description, month, year } = expenseData;
-    if (!amount || !description.trim())
-      return alert("Amount and Description required.");
-    try {
-      const res = await axios.post(
-        "https://langar-db-csvv.onrender.com/add-expense",
-        {
-          amount: Number(amount),
-          description: description.trim(),
-          month,
-          year: Number(year),
-        }
-      );
-      alert(res.data.message);
-      setExpenseData({ ...expenseData, amount: "", description: "" });
-    } catch (err) {
-      console.error("Error adding expense:", err);
-      alert("Failed to add expense.");
-    }
-  };
-  const deleteMember = async () => {
-    const { rollNo } = removeMember;
-    if (!rollNo) {
-      alert("Please select a Roll Number.");
+
+    if (!amount || !description.trim()) {
+      setModalMessage("Amount and Description are required.");
+      setShowModal(true);
       return;
     }
 
     try {
-      const res = await axios.post(
-        "https://langar-db-csvv.onrender.com/delete-member",
-        {
-          rollNo: parseInt(rollNo), // ensure it's sent as a number
-        }
-      );
+      setLoading(true);
 
-      alert(res.data.message);
+      const res = await axios.post("https://langar-db-csvv.onrender.com/add-expense", {
+        amount: Number(amount),
+        description: description.trim(),
+        month,
+        year: Number(year),
+      });
+
+      setModalMessage(res.data.message || "Expense added successfully!");
+      setShowModal(true);
+
+      setExpenseData({ ...expenseData, amount: "", description: "" });
+    } catch (error) {
+      console.error("Error adding expense:", error);
+      setModalMessage("Failed to add expense. Please try again.");
+      setShowModal(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteMember = async () => {
+    const { rollNo } = removeMember;
+
+    if (!rollNo) {
+      setModalMessage("Please select a Roll Number.");
+      setShowModal(true);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await axios.post("https://langar-db-csvv.onrender.com/delete-member", {
+        rollNo: parseInt(rollNo),
+      });
+
+      setModalMessage(res.data.message || "Member deleted successfully!");
+      setShowModal(true);
       setRemoveMember({ rollNo: "" });
-    } catch (err) {
-      console.error("Error deleting member:", err);
-      alert("Failed to remove member.");
+    } catch (error) {
+      console.error("Error deleting member:", error);
+      setModalMessage("Failed to delete member. Please try again.");
+      setShowModal(true);
+    } finally {
+      setLoading(false);
     }
   };
 
   const addDonation = async () => {
-    const { amount, rollNo, month, year } = donationData;
-    if (!rollNo || !amount || !month || !year)
-      return alert("All fields are required.");
+    const { amount, rollNo, month, year, type } = donationData;
+
+    if (!rollNo || !amount || !month || !year || !type) {
+      setModalMessage("All fields are required.");
+      setShowModal(true);
+      return;
+    }
+
     try {
-      const res = await axios.post(
-        "https://langar-db-csvv.onrender.com/update-donations",
-        {
-          rollNo,
-          amount: Number(amount),
-          month,
-          year: Number(year),
-        }
-      );
-      alert(res.data.message);
-      setDonationData({ ...donationData, amount: "", rollNo: "" });
-    } catch (err) {
-      console.error("Error adding donation:", err);
-      alert("Failed to add donation.");
+      setLoading(true);
+
+      const res = await axios.post("https://langar-db-csvv.onrender.com/update-donations", {
+        rollNo,
+        amount: Number(amount),
+        month,
+        year: Number(year),
+        type,
+      });
+
+      setModalMessage(res.data.message || "Donation added successfully!");
+      setShowModal(true);
+      setDonationData({ ...donationData, amount: "", rollNo: "", type: "" });
+    } catch (error) {
+      console.error("Error adding donation:", error);
+      setModalMessage("Failed to add donation. Please try again.");
+      setShowModal(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -410,41 +526,67 @@ const SuperAdmin = () => {
       </div>
     );
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-t from-indigo-100 via-orange-200 to-white">
+        <div className="flex flex-col items-center space-y-6">
+          <div className="w-16 h-16 border-8 border-solid border-transparent border-t-orange-600 rounded-full animate-spin"></div>
+          <div className="text-orange-700 font-semibold text-2xl">Loading</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8 max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl space-y-10">
+    <div className="min-h-screen flex flex-col p-8 max-w-4xl mx-auto bg-white shadow-2xl space-y-10">
+      {/* Back Button */}
       <button
         onClick={() => (window.location.href = "/")}
-        className="inline-block text-sm text-red-800 hover:text-red-600 font-semibold transition"
+        className="absolute top-8 left-8 inline-block text-sm text-red-800 hover:text-red-600 font-semibold transition"
       >
         <span className="mb-2">← </span>Back to Home
       </button>
 
-      <h1 className="text-2xl font-extrabold text-center text-orange-700">
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-80 text-center">
+            <p className="text-gray-800">{modalMessage}</p>
+            <button
+              onClick={() => setShowModal(false)}
+              className="mt-4 px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+      <h1 className="text-2xl mt-2 font-extrabold text-center text-orange-700">
         SuperAdmin Dashboard
       </h1>
-
       {/* Section Buttons */}
-      <div className="flex justify-center gap-3 flex-wrap">
-        {sections.map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setActiveSection(key)}
-            className={`w-40 text-center px-5 py-2 rounded-full font-medium transition duration-200 shadow-sm ${
-              activeSection === key
-                ? "bg-indigo-700 text-white"
-                : "bg-orange-200 text-orange-900 hover:bg-orange-300"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="w-full overflow-x-auto">
+        <div className="flex gap-4 px-4 py-3 min-w-max">
+          {sections.map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setActiveSection(key)}
+              className={`whitespace-nowrap px-5 py-2.5 rounded-full font-medium transition-all duration-300 border
+          ${
+            activeSection === key
+              ? "bg-[#d97706] text-white border-[#b45309] shadow-md"
+              : "bg-[#fef3c7] text-[#78350f] border-[#fcd34d] hover:bg-[#fde68a] hover:border-[#fbbf24]"
+          }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
-
       {/* Attendance & Delete Attendance Section */}
       {(activeSection === "attendance" ||
         activeSection === "deleteAttendance") && (
-        <div className="bg-gray-50 p-6 rounded-xl shadow space-y-5">
-          <h2 className="text-2xl font-semibold text-blue-700">
+        <div className="bg-[#fff9f0] p-6 rounded-2xl shadow-lg space-y-6 border border-[#fcd34d]">
+          <h2 className="text-2xl font-semibold text-[#9a3412]">
             {activeSection === "attendance"
               ? "Add Attendance"
               : "Delete Attendance"}
@@ -458,12 +600,12 @@ const SuperAdmin = () => {
               readOnly
               type="text"
               placeholder="Selected Roll Numbers"
-              className="border px-4 py-2 rounded w-full bg-white shadow-sm"
+              className="border border-yellow-300 px-4 py-2 rounded w-full bg-[#fffefc] shadow-sm text-[#92400e] placeholder-[#b45309]"
               value={Object.keys(attendanceData.attendance).join(", ")}
             />
             <button
               onClick={() => setShowRollNumberPopup(true)}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded"
+              className="px-4 py-2 bg-[#65a30d] hover:bg-[#4d7c0f] text-white font-medium rounded shadow"
             >
               +
             </button>
@@ -475,7 +617,7 @@ const SuperAdmin = () => {
             onClick={
               activeSection === "attendance" ? addAttendance : deleteAttendance
             }
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition"
+            className="w-full bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#ca8a04] hover:to-[#92400e] text-white font-semibold py-2 rounded-lg transition shadow-md"
           >
             {activeSection === "attendance"
               ? "Add Attendance"
@@ -483,15 +625,14 @@ const SuperAdmin = () => {
           </button>
         </div>
       )}
-
       {/* Expense Section */}
       {activeSection === "expense" && (
-        <div className="bg-gray-50 p-6 rounded-xl shadow space-y-5">
-          <h2 className="text-2xl font-semibold text-blue-700">Add Expense</h2>
+        <div className="bg-[#fffaf0] p-6 rounded-2xl shadow-xl space-y-6 border border-[#fde68a]">
+          <h2 className="text-2xl font-semibold text-[#9a3412]">Add Expense</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <select
-              className="border px-3 py-2 rounded bg-white shadow-sm"
+              className="border border-yellow-300 px-3 py-2 rounded bg-[#fffefc] shadow-sm text-[#78350f]"
               value={expenseData.year}
               onChange={(e) =>
                 setExpenseData({ ...expenseData, year: e.target.value })
@@ -504,7 +645,7 @@ const SuperAdmin = () => {
             </select>
 
             <select
-              className="border px-3 py-2 rounded bg-white shadow-sm"
+              className="border border-yellow-300 px-3 py-2 rounded bg-[#fffefc] shadow-sm text-[#78350f]"
               value={expenseData.month}
               onChange={(e) =>
                 setExpenseData({ ...expenseData, month: e.target.value })
@@ -519,7 +660,7 @@ const SuperAdmin = () => {
           <input
             type="number"
             placeholder="Enter Amount"
-            className="border px-3 py-2 rounded w-full bg-white shadow-sm"
+            className="border border-yellow-300 px-3 py-2 rounded w-full bg-[#fffefc] shadow-sm text-[#92400e] placeholder-[#b45309]"
             value={expenseData.amount}
             onChange={(e) =>
               setExpenseData({ ...expenseData, amount: e.target.value })
@@ -529,7 +670,7 @@ const SuperAdmin = () => {
           <input
             type="text"
             placeholder="Enter Description"
-            className="border px-3 py-2 rounded w-full bg-white shadow-sm"
+            className="border border-yellow-300 px-3 py-2 rounded w-full bg-[#fffefc] shadow-sm text-[#92400e] placeholder-[#b45309]"
             value={expenseData.description}
             onChange={(e) =>
               setExpenseData({ ...expenseData, description: e.target.value })
@@ -538,91 +679,172 @@ const SuperAdmin = () => {
 
           <button
             onClick={addExpense}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition"
+            className="w-full bg-gradient-to-r from-[#d97706] to-[#92400e] hover:from-[#fbbf24] hover:to-[#78350f] text-white font-semibold py-2 rounded-lg shadow transition"
           >
             Add Expense
           </button>
         </div>
       )}
-
       {/* Add Member Section */}
-      {activeSection === "addMember" && (
-        <div className="bg-gray-50 p-6 rounded-xl shadow space-y-5">
-          <h2 className="text-2xl font-semibold text-blue-700">Add Member</h2>
-          <form onSubmit={handleAddMember} className="space-y-4">
-            {[
-              {
-                label: "Roll No",
-                name: "roll_no",
-                type: "select",
-                options: rollNumbers,
-              },
-              { label: "Name", name: "name" },
-              { label: "Last Name", name: "last_name" },
-              { label: "Phone No", name: "phone_no" },
-              { label: "Address", name: "address" },
-            ].map(({ label, name, type, options }) => (
-              <div key={name}>
-                <label className="block text-sm font-medium text-gray-700">
-                  {label}
-                </label>
-                {type === "select" ? (
-                  <select
-                    name={name}
-                    value={addMemberData[name]}
-                    onChange={handleMemberData}
-                    required={name === "roll_no"} // Only Roll No required
-                    className="mt-1 block w-full p-2 border rounded bg-white shadow-sm"
-                  >
-                    <option value="">Select {label}</option>
-                    {options.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
+      {activeSection === "editMember" && (
+        <div className="bg-[#fffaf0] p-6 rounded-2xl shadow-xl space-y-6 border border-[#fde68a]">
+          <h2 className="text-2xl font-semibold text-[#9a3412]">
+            Add / Edit Member
+          </h2>
+
+          <form onSubmit={handleEditMember} className="space-y-5">
+            {/* Select Roll Number */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#78350f] mb-1">
+                Select Roll No
+              </label>
+              <select
+                name="roll_no"
+                value={editMemberData.roll_no}
+                onChange={handleRollNoChange}
+                className="block w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f]"
+                required
+              >
+                <option value="">--Select Roll No--</option>
+                {Array.isArray(members) && members.length > 0 ? (
+                  <>
+                    {members.map((member) => (
+                      <option key={member.roll_no} value={member.roll_no}>
+                        {member.roll_no}
                       </option>
                     ))}
-                  </select>
+                    <option value={members.length + 1}>
+                      {members.length + 1}
+                    </option>
+                  </>
                 ) : (
-                  <input
-                    type="text"
-                    name={name}
-                    value={addMemberData[name]}
-                    onChange={handleMemberData}
-                    required={name === "name"} // Only Name required
-                    className="mt-1 block w-full p-2 border rounded bg-white shadow-sm"
-                  />
+                  <option value="1">Add New Roll No: 1</option>
                 )}
-              </div>
-            ))}
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                checked={addMemberData.isAdmin}
-                onChange={handleIsAdminCheckbox}
-                className="mr-2"
-              />
-              <label className="text-sm">Is Admin</label>
+              </select>
             </div>
 
+            {/* Input fields */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#78350f] mb-1">
+                First Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={editMemberData.name}
+                onChange={handleEditMemberData}
+                className="block w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f] placeholder-[#b45309]"
+                required
+                placeholder="Enter First Name"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#78350f] mb-1">
+                Last Name
+              </label>
+              <input
+                type="text"
+                name="last_name"
+                value={editMemberData.last_name}
+                onChange={handleEditMemberData}
+                className="block w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f] placeholder-[#b45309]"
+                placeholder="Enter Last Name"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#78350f] mb-1">
+                Phone Number
+              </label>
+              <input
+                type="text"
+                name="phone_no"
+                value={editMemberData.phone_no}
+                onChange={handleEditMemberData}
+                className="block w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f] placeholder-[#b45309]"
+                required
+                placeholder="Enter Phone Number"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#78350f] mb-1">
+                Address
+              </label>
+              <input
+                name="address"
+                value={editMemberData.address}
+                onChange={handleEditMemberData}
+                className="block w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f] placeholder-[#b45309]"
+                required
+                placeholder="Enter Address"
+              />
+            </div>
+
+            {/* Upload Image Field */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#78350f] mb-1">
+                Upload Image
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  name="image"
+                  id="imageUpload"
+                  onChange={handleUploadedImages}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  accept="image/*"
+                />
+                <div className="flex items-center justify-center px-4 py-2 border border-yellow-300 bg-[#fffdf8] rounded cursor-pointer shadow-sm text-[#78350f] hover:bg-yellow-100 transition">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2 text-[#92400e]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a1 1 0 001 1h14a1 1 0 001-1v-1m-4-4l-4-4m0 0l-4 4m4-4v12"
+                    />
+                  </svg>
+                  <span>Choose Image</span>
+                </div>
+              </div>
+
+              {previewImage && (
+                <div className="mt-4">
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="w-32 h-32 object-cover rounded-lg border border-yellow-300 shadow"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition"
+              className="w-full bg-gradient-to-r from-[#d97706] to-[#92400e] hover:from-[#fbbf24] hover:to-[#78350f] text-white font-semibold py-2 rounded-lg shadow transition"
             >
-              Add Member
+              Update Member
             </button>
           </form>
         </div>
       )}
-
       {/* Delete Member */}
       {activeSection === "deleteMember" && (
-        <div className="bg-gray-50 p-6 rounded-xl shadow space-y-5">
-          <h2 className="text-2xl font-semibold text-blue-700">
+        <div className="bg-[#fff8e1] p-6 rounded-2xl shadow-xl space-y-6 border border-[#fcd34d]">
+          <h2 className="text-2xl font-semibold text-[#9a3412]">
             Remove Member
           </h2>
 
           <select
-            className="w-full border px-3 py-2 rounded bg-white shadow-sm"
+            className="w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f] focus:outline-none focus:ring-2 focus:ring-yellow-400"
             value={removeMember.rollNo}
             onChange={(e) =>
               setRemoveMember({ ...removeMember, rollNo: e.target.value })
@@ -638,21 +860,22 @@ const SuperAdmin = () => {
 
           <button
             onClick={deleteMember}
-            className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-lg transition"
+            className="w-full bg-gradient-to-r from-[#dc2626] to-[#7f1d1d] hover:from-[#ef4444] hover:to-[#991b1b] text-white font-semibold py-2 rounded-lg shadow transition"
           >
             Remove Member
           </button>
         </div>
       )}
-
       {/* Donation Section */}
       {activeSection === "donation" && (
-        <div className="bg-gray-50 p-6 rounded-xl shadow space-y-5">
-          <h2 className="text-2xl font-semibold text-blue-700">Add Donation</h2>
+        <div className="bg-[#fff7e6] p-6 rounded-2xl shadow-xl space-y-6 border border-[#fcd34d]">
+          <h2 className="text-2xl font-semibold text-[#9a3412]">
+            Add Donation
+          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <select
-              className="border px-3 py-2 rounded bg-white shadow-sm"
+              className="border px-4 py-2 rounded bg-[#fffdf8] shadow-sm text-[#6b4226] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
               value={donationData.year}
               onChange={(e) =>
                 setDonationData({ ...donationData, year: e.target.value })
@@ -665,7 +888,7 @@ const SuperAdmin = () => {
             </select>
 
             <select
-              className="border px-3 py-2 rounded bg-white shadow-sm"
+              className="border px-4 py-2 rounded bg-[#fffdf8] shadow-sm text-[#6b4226] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
               value={donationData.month}
               onChange={(e) =>
                 setDonationData({ ...donationData, month: e.target.value })
@@ -678,7 +901,7 @@ const SuperAdmin = () => {
           </div>
 
           <select
-            className="w-full border px-3 py-2 rounded bg-white shadow-sm"
+            className="w-full border px-4 py-2 rounded bg-[#fffdf8] shadow-sm text-[#6b4226] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
             value={donationData.rollNo}
             onChange={(e) =>
               setDonationData({ ...donationData, rollNo: e.target.value })
@@ -695,16 +918,50 @@ const SuperAdmin = () => {
           <input
             type="number"
             placeholder="Enter Amount"
-            className="border px-3 py-2 rounded w-full bg-white shadow-sm"
+            className="border px-4 py-2 rounded w-full bg-[#fffdf8] shadow-sm text-[#6b4226] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
             value={donationData.amount}
             onChange={(e) =>
               setDonationData({ ...donationData, amount: e.target.value })
             }
           />
 
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="donation"
+                name="type"
+                checked={donationData.type === "donation"}
+                onChange={() =>
+                  setDonationData({ ...donationData, type: "donation" })
+                }
+                className="h-6 w-6 text-[#d97706] border-gray-300 rounded-full focus:ring-[#d97706] transition duration-200"
+              />
+              <label htmlFor="donation" className="text-sm text-[#6b4226]">
+                Donation
+              </label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="fine"
+                name="type"
+                checked={donationData.type === "fine"}
+                onChange={() =>
+                  setDonationData({ ...donationData, type: "fine" })
+                }
+                className="h-6 w-6 text-[#f44336] border-gray-300 rounded-full focus:ring-[#f44336] transition duration-200"
+              />
+              <label htmlFor="fine" className="text-sm text-[#6b4226]">
+                Fine
+              </label>
+            </div>
+          </div>
+
           <button
             onClick={addDonation}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition"
+            className="w-full bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#ca8a04] hover:to-[#92400e] text-white font-semibold py-2 rounded-lg transition shadow-md"
+            disabled={!donationData.type} // Disable button if no type is selected
           >
             Add Donation
           </button>

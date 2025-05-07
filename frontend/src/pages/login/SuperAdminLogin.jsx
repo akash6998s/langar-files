@@ -9,19 +9,7 @@ const SuperAdminLogin = () => {
   const [passwordVisible, setPasswordVisible] = useState(false); // State to toggle password visibility
   const navigate = useNavigate();
   
-  useEffect(() => {
-    const handleBeforeUnload = (event) => {
-      event.preventDefault();
-      event.returnValue = '';  // Trigger prompt message
-    };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // Cleanup the event listener when the component unmounts
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, []);
 
 
   const handleSubmit = (e) => {

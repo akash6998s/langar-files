@@ -1,7 +1,9 @@
 const express = require("express");
 const fs = require("fs");
+const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
+const archiver = require("archiver");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,6 +14,7 @@ const allowedOrigins = [
   "https://langar-db-csvv.onrender.com",
   "http://localhost:5000",
   "http://localhost:3000",
+  "https://timely-pegasus-f577f8.netlify.app"
 ];
 const corsOptions = {
   origin: function (origin, callback) {
@@ -32,6 +35,7 @@ const attendancePath = path.join(__dirname, "data", "attendance.json");
 const membersPath = path.join(__dirname, "data", "members.json");
 const donationPath = path.join(__dirname, "data", "donations.json");
 const expensesPath = path.join(__dirname, "data", "expenses.json");
+app.use("/images", express.static(path.join(__dirname, "data/uploads")));
 
 // Helper functions
 const readJSON = (filePath, defaultValue) => {
@@ -48,7 +52,46 @@ const writeJSON = (filePath, data) => {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 };
 
+const uploadPath = path.join(__dirname, "data", "uploads");
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const rollNo = req.body.roll_no;
+    const ext = path.extname(file.originalname); // e.g., .jpg, .png
+    cb(null, `${rollNo}${ext}`);
+  },
+});
+
+const upload = multer({ storage });
+
+app.use(express.json()); // For parsing application/json
+app.use(express.urlencoded({ extended: true }));
+
 // Routes
+
+app.get("/download-all-images", (req, res) => {
+  const uploadDir = path.join(__dirname, "data", "uploads");
+
+  if (!fs.existsSync(uploadDir)) {
+    return res.status(404).json({ error: "Upload directory not found." });
+  }
+
+  const zipFileName = "all-member-images.zip";
+  res.setHeader("Content-Disposition", `attachment; filename=${zipFileName}`);
+  res.setHeader("Content-Type", "application/zip");
+
+  const archive = archiver("zip", { zlib: { level: 9 } });
+  archive.pipe(res);
+
+  archive.directory(uploadDir, false); // false to avoid nesting folder in zip
+  archive.finalize();
+});
 
 // Get member details
 app.get("/member-full-details", (req, res) => {
@@ -199,33 +242,42 @@ app.get("/expenses", (req, res) => {
 
 // Update donations data
 app.post("/update-donations", (req, res) => {
-  const { year, month, rollNo } = req.body;
-  const amount = Number(req.body.amount); // Parse amount to number
+  const { year, month, rollNo, type } = req.body;
+  const amount = Number(req.body.amount);
 
   // Validate input
-  if (!year || !month || !rollNo || isNaN(amount)) {
+  if (!year || !month || !rollNo || isNaN(amount) || !type) {
     return res.status(400).json({ error: "Missing or invalid data" });
   }
 
-  // Read existing donation data
-  let data = readJSON(donationPath, {});
-
-  // Initialize nested objects if not present
-  if (!data[year]) data[year] = {};
-  if (!data[year][month]) data[year][month] = {};
-
-  // Initialize donation amount for rollNo if not present
-  if (typeof data[year][month][rollNo] !== "number") {
-    data[year][month][rollNo] = 0;
+  // Only allow 'donation' or 'fine'
+  if (type !== "donation" && type !== "fine") {
+    return res
+      .status(400)
+      .json({ error: "Invalid type. Must be 'donation' or 'fine'" });
   }
 
-  // Add the new amount to the existing amount
-  data[year][month][rollNo] += amount;
+  // Read existing data
+  let data = readJSON(donationPath, {});
 
-  // Save updated data
+  // Initialize nested structure
+  if (!data[year]) data[year] = {};
+  if (!data[year][month]) data[year][month] = {};
+  if (!data[year][month][rollNo])
+    data[year][month][rollNo] = { donation: 0, fine: 0 };
+
+  // Ensure both keys exist
+  if (typeof data[year][month][rollNo][type] !== "number") {
+    data[year][month][rollNo][type] = 0;
+  }
+
+  // Add to existing amount
+  data[year][month][rollNo][type] += amount;
+
+  // Write back to file
   writeJSON(donationPath, data);
 
-  res.json({ success: true, message: "Donation updated successfully" });
+  res.json({ success: true, message: `${type} updated successfully` });
 });
 
 // Add expense data
@@ -312,96 +364,76 @@ app.post("/delete-member", (req, res) => {
 
 // POST /add-member
 
-const membersFilePath = path.join(__dirname, "data/members.json");
+app.post("/edit-member", upload.single("image"), (req, res) => {
+  const { roll_no, name, last_name, phone_no, address } = req.body;
 
-app.post("/add-member", (req, res) => {
-  const newMember = req.body;
-
-  if (!newMember.roll_no) {
-    return res.status(400).json({ message: "roll_no is required" });
+  if (!roll_no) {
+    return res.status(400).json({ error: "Roll number is required" });
   }
 
-  try {
-    const membersData = JSON.parse(fs.readFileSync(membersFilePath, "utf-8"));
+  const dataPath = path.join(__dirname, "data", "members.json");
+  let members = JSON.parse(fs.readFileSync(dataPath, "utf-8"));
 
-    const existingIndex = membersData.findIndex(
-      (m) => String(m.roll_no) === String(newMember.roll_no)
-    );
-    
+  const index = members.findIndex(
+    (m) => parseInt(m.roll_no) === parseInt(roll_no)
+  );
 
-    if (existingIndex !== -1) {
-      const existingMember = membersData[existingIndex];
+  if (index === -1) {
+    // If member does not exist, add new member
+    const newMember = {
+      roll_no,
+      name: name || "",
+      last_name: last_name || "",
+      phone_no: phone_no || "",
+      address: address || "",
+      img: req.file ? req.file.filename : "",
+    };
+    members.push(newMember);
 
-      if (existingMember.name && existingMember.name.trim() !== "") {
-        // Case: roll_no exists and name is NOT empty
-        return res
-          .status(409)
-          .json({ message: "Member with this roll number already exists" });
-      } else {
-        // Case: roll_no exists and name is empty — update the record
-        membersData[existingIndex] = { ...existingMember, ...newMember };
-        fs.writeFileSync(
-          membersFilePath,
-          JSON.stringify(membersData, null, 2),
-          "utf-8"
-        );
-        return res.status(200).json({
-          message: "Member details updated successfully",
-          member: membersData[existingIndex],
-        });
-      }
-    }
+    fs.writeFileSync(dataPath, JSON.stringify(members, null, 2));
 
-    // New member — add to list
-    membersData.push(newMember);
-    fs.writeFileSync(
-      membersFilePath,
-      JSON.stringify(membersData, null, 2),
-      "utf-8"
-    );
-    res
-      .status(201)
-      .json({ message: "Member added successfully", member: newMember });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error reading or writing member data", error });
+    return res.status(201).json({
+      success: true,
+      message: "New member added successfully",
+      member: newMember,
+    });
   }
-});
 
-// POST /empty-rollno
+  // If member exists, update their details
+  if (name) members[index].name = name;
+  if (last_name) members[index].last_name = last_name;
+  if (phone_no) members[index].phone_no = phone_no;
+  if (address) members[index].address = address;
+  if (req.file) members[index].img = req.file.filename;
 
-app.get('/empty-rollno', (req, res) => {
-  const filePath = path.join(__dirname, 'data/members.json');
+  fs.writeFileSync(dataPath, JSON.stringify(members, null, 2));
 
-  fs.readFile(filePath, 'utf8', (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to read members.json' });
-    }
-
-    try {
-      const members = JSON.parse(data);
-
-      // Filter members with empty name and get their roll numbers
-      const emptyNameRollNumbers = members
-        .filter(member => member.name === "")
-        .map(member => member.roll_no);
-
-      // Get the total number of members + 1 (next roll number)
-      const nextRollNo = members.length + 1;
-
-      // Combine both arrays: empty roll numbers and total member count + 1
-      const response = [
-        ...emptyNameRollNumbers,
-        nextRollNo
-      ];
-
-      res.json(response);
-    } catch (parseErr) {
-      res.status(500).json({ error: 'Error parsing JSON file' });
-    }
+  res.json({
+    success: true,
+    message: "Member details updated successfully",
+    member: members[index],
   });
 });
+
+app.get("/all-images", (req, res) => {
+  fs.readdir(uploadPath, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: "Unable to read upload directory" });
+    }
+
+    const fileUrls = files.map((file) => ({
+      name: file,
+      url: `/images/${file}`,
+    }));
+
+    res.json(fileUrls);
+  });
+});
+
+
+app.use("/uploads", express.static(path.join(__dirname, "data", "uploads")));
+
+// POST /empty-rollno
 
 // Get additional data
 app.get("/additional", (req, res) => {
@@ -412,20 +444,31 @@ app.get("/additional", (req, res) => {
   res.json(additionalData);
 });
 
-
 // ✅ NEW: Overall summary (total till date)
 app.get("/overall-summary", (req, res) => {
   const donations = readJSON(donationPath, {});
   const expensesData = readJSON(expensesPath, []);
 
   let totalDonations = 0;
+  let totalFines = 0; // Added a variable for total fines
   let totalExpenses = 0;
 
-  // Sum all donations
+  // Sum all donations and fines
   for (const year in donations) {
     for (const month in donations[year]) {
       for (const rollNo in donations[year][month]) {
-        totalDonations += Number(donations[year][month][rollNo] || 0);
+        const value = donations[year][month][rollNo];
+
+        if (typeof value === "number") {
+          totalDonations += value; // If the value is a number, add it to donations
+        } else if (typeof value === "object" && value !== null) {
+          if ("donation" in value) {
+            totalDonations += Number(value.donation || 0); // Add donation if present
+          }
+          if ("fine" in value) {
+            totalFines += Number(value.fine || 0); // Add fine if present
+          }
+        }
       }
     }
   }
@@ -443,12 +486,13 @@ app.get("/overall-summary", (req, res) => {
     }
   }
 
-  const netAmount = totalDonations - totalExpenses;
+  const netAmount = totalDonations + totalFines - totalExpenses;
 
   res.json({
     success: true,
     data: {
-      totalDonations,
+      totalDonations, // This now includes donations and fines
+      totalFines, // Returning total fines separately
       totalExpenses,
       netAmount,
     },
