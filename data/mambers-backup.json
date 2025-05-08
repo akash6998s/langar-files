@@ -1,51 +1,45 @@
 [
   {
     "roll_no": 1,
-    "name": "Deepak ",
-    "last_name": "Pathak ",
-    "phone_no": "9818121311",
-    "address": "Sector -30, Faridabad ",
-    "img": "1.png"
+    "name": "Deepak",
+    "last_name": "Pathak",
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 2,
     "name": "Bijender",
     "last_name": "Yadav",
-    "phone_no": "8860801938",
-    "address": "Faridabad ",
-    "img": "2.png"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 3,
     "name": "Vikas",
     "last_name": "Singh",
-    "phone_no": "8010853551",
-    "address": "Ghaziabad ",
-    "img": "3.png"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 4,
     "name": "Jatin",
     "last_name": "",
-    "phone_no": "7042520201",
-    "address": "Faridabad ",
-    "img": "4.png"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 5,
     "name": "Rohit",
     "last_name": "Goswami",
-    "phone_no": "8744000938",
-    "address": "Samay pur road, Rajiv colony, Sector 56-A, ballabgarh, Faridabad - 121004",
-    "img": "5.png"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 6,
     "name": "Ravi",
     "last_name": "Thakur",
-    "phone_no": "7827733423",
-    "address": "Malook chand estate mata ka mandir Mewla maharajpur sec-46  ",
-    "img": "6.png"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 7,
@@ -58,9 +52,8 @@
     "roll_no": 8,
     "name": "Akash",
     "last_name": "Singh",
-    "phone_no": "9315729158",
-    "address": "Ghaziabad",
-    "img": "8.png"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 9,
@@ -73,9 +66,8 @@
     "roll_no": 10,
     "name": "Mayank",
     "last_name": "",
-    "phone_no": "9013495745",
-    "address": "A-302 Gaur Global Village,crossings republic,Nh-24,Ghaziabad(U.P)201016",
-    "img": "10.png"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 11,
@@ -88,9 +80,8 @@
     "roll_no": 12,
     "name": "Rohtash",
     "last_name": "",
-    "phone_no": "8168283293",
-    "address": "Near Sarv Haryana Gramin bank teh.hathin distt.palwal",
-    "img": "12.png"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 13,
@@ -131,9 +122,8 @@
     "roll_no": 18,
     "name": "Ravi",
     "last_name": "Sgm",
-    "phone_no": "7011557728",
-    "address": "F-324 SGM Nagar Faridabad ",
-    "img": "18.png"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 19,
@@ -209,17 +199,15 @@
     "roll_no": "29",
     "name": "Dilip",
     "last_name": "",
-    "phone_no": "9306660561",
-    "address": "Nearby All India Ayurveda hospital, badarpur - 440074",
-    "img": "29.png"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 30,
     "name": "Harshit",
     "last_name": "",
-    "phone_no": "8307462918",
-    "address": " H.no.1028, Sector 46, Faridabad, Haryana, 121010",
-    "img": "30.png"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 31,
@@ -421,9 +409,8 @@
     "roll_no": 59,
     "name": "Rahul",
     "last_name": "Rajput",
-    "phone_no": "8882121110",
-    "address": "Rajiv colony, Ballabgarh ",
-    "img": "59.png"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 60,
@@ -596,10 +583,9 @@
   {
     "roll_no": 84,
     "name": "Prateek",
-    "last_name": "Chandila",
-    "phone_no": "7827967454",
-    "address": "Village Fatehpur chandila, Faridabad",
-    "img": "84.png"
+    "last_name": "",
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 85,
@@ -640,8 +626,8 @@
     "roll_no": 90,
     "name": "Sunil",
     "last_name": "Kumar",
-    "phone_no": "9999615095",
-    "address": "Sector - 45, Faridabad "
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 91,
