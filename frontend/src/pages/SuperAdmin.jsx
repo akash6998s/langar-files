@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import credentials from "../data/admin.json";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+
 
 const SuperAdmin = () => {
   const monthNames = [
@@ -72,6 +74,7 @@ const SuperAdmin = () => {
   const [availableRollNumbers, setAvailableRollNumbers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   const [modalMessage, setModalMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -108,7 +111,9 @@ const SuperAdmin = () => {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const res = await fetch("https://langar-db-csvv.onrender.com/member-full-details");
+        const res = await fetch(
+          "https://langar-db-csvv.onrender.com/member-full-details"
+        );
         const data = await res.json();
         if (data && Array.isArray(data)) {
           setMembers(data);
@@ -127,7 +132,9 @@ const SuperAdmin = () => {
     const fetchRollNumbers = async () => {
       try {
         setLoading(true);
-        const res = await fetch("https://langar-db-csvv.onrender.com/member-full-details");
+        const res = await fetch(
+          "https://langar-db-csvv.onrender.com/member-full-details"
+        );
         const data = await res.json();
         setAvailableRollNumbers(data.map((m) => m.roll_no));
       } catch (error) {
@@ -140,7 +147,6 @@ const SuperAdmin = () => {
   }, []);
 
   const navigate = useNavigate(); // Call at the top level
-
 
   useEffect(() => {
     const superAdminId = sessionStorage.getItem("superAdminId");
@@ -236,10 +242,13 @@ const SuperAdmin = () => {
     try {
       setLoading(true);
 
-      const response = await fetch("https://langar-db-csvv.onrender.com/edit-member", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        "https://langar-db-csvv.onrender.com/edit-member",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to update member");
@@ -299,12 +308,15 @@ const SuperAdmin = () => {
 
     try {
       setLoading(true);
-      const res = await axios.post("https://langar-db-csvv.onrender.com/update-attendance", {
-        attendance: filtered,
-        month,
-        year: Number(year),
-        day: Number(day),
-      });
+      const res = await axios.post(
+        "https://langar-db-csvv.onrender.com/update-attendance",
+        {
+          attendance: filtered,
+          month,
+          year: Number(year),
+          day: Number(day),
+        }
+      );
 
       setModalMessage(res.data.message || "Attendance updated successfully!");
       setShowModal(true);
@@ -332,12 +344,15 @@ const SuperAdmin = () => {
     try {
       setLoading(true);
 
-      const res = await axios.post("https://langar-db-csvv.onrender.com/delete-attendance", {
-        attendance: filtered,
-        month,
-        year: Number(year),
-        day: Number(day),
-      });
+      const res = await axios.post(
+        "https://langar-db-csvv.onrender.com/delete-attendance",
+        {
+          attendance: filtered,
+          month,
+          year: Number(year),
+          day: Number(day),
+        }
+      );
 
       setModalMessage(res.data.message || "Attendance deleted successfully!");
       setShowModal(true);
@@ -364,12 +379,15 @@ const SuperAdmin = () => {
     try {
       setLoading(true);
 
-      const res = await axios.post("https://langar-db-csvv.onrender.com/add-expense", {
-        amount: Number(amount),
-        description: description.trim(),
-        month,
-        year: Number(year),
-      });
+      const res = await axios.post(
+        "https://langar-db-csvv.onrender.com/add-expense",
+        {
+          amount: Number(amount),
+          description: description.trim(),
+          month,
+          year: Number(year),
+        }
+      );
 
       setModalMessage(res.data.message || "Expense added successfully!");
       setShowModal(true);
@@ -396,9 +414,12 @@ const SuperAdmin = () => {
     try {
       setLoading(true);
 
-      const res = await axios.post("https://langar-db-csvv.onrender.com/delete-member", {
-        rollNo: parseInt(rollNo),
-      });
+      const res = await axios.post(
+        "https://langar-db-csvv.onrender.com/delete-member",
+        {
+          rollNo: parseInt(rollNo),
+        }
+      );
 
       setModalMessage(res.data.message || "Member deleted successfully!");
       setShowModal(true);
@@ -424,13 +445,16 @@ const SuperAdmin = () => {
     try {
       setLoading(true);
 
-      const res = await axios.post("https://langar-db-csvv.onrender.com/update-donations", {
-        rollNo,
-        amount: Number(amount),
-        month,
-        year: Number(year),
-        type,
-      });
+      const res = await axios.post(
+        "https://langar-db-csvv.onrender.com/update-donations",
+        {
+          rollNo,
+          amount: Number(amount),
+          month,
+          year: Number(year),
+          type,
+        }
+      );
 
       setModalMessage(res.data.message || "Donation added successfully!");
       setShowModal(true);
@@ -538,436 +562,505 @@ const SuperAdmin = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col p-8 max-w-4xl mx-auto bg-white shadow-2xl space-y-10">
-      {/* Back Button */}
-      <button
-        onClick={() => (window.location.href = "/")}
-        className="absolute top-8 left-8 inline-block text-sm text-red-800 hover:text-red-600 font-semibold transition"
-      >
-        <span className="mb-2">← </span>Back to Home
-      </button>
+    <>
+      <div className="w-full flex justify-between items-center px-4 py-4  bg-white relative z-50">
+        {/* Back Button on Left */}
+        <button
+          onClick={() => (window.location.href = "/")}
+          className="p-2 rounded-full hover:bg-red-100 text-red-800 hover:text-red-600 transition"
+          title="Back to Home"
+        >
+          {/* Heroicon: Arrow Left */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-6 h-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+        </button>
 
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-80 text-center">
-            <p className="text-gray-800">{modalMessage}</p>
-            <button
-              onClick={() => setShowModal(false)}
-              className="mt-4 px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
+        {/* Dropdown Menu on Right */}
+        <div className="relative">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex items-center gap-2 px-5 py-2 bg-[#FFF7E6] border border-[#f3dcb2] text-[#92400e] font-semibold rounded-full shadow-sm hover:bg-[#fdebc4] transition-all duration-200"
+          >
+            Finance
+            <svg
+              className={`w-4 h-4 transform transition-transform duration-200 ${
+                isOpen ? "rotate-180" : "rotate-0"
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              OK
-            </button>
-          </div>
-        </div>
-      )}
-      <h1 className="text-2xl mt-2 font-extrabold text-center text-orange-700">
-        SuperAdmin Dashboard
-      </h1>
-      {/* Section Buttons */}
-      <div className="w-full overflow-x-auto">
-        <div className="flex gap-4 px-4 py-3 min-w-max">
-          {sections.map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setActiveSection(key)}
-              className={`whitespace-nowrap px-5 py-2.5 rounded-full font-medium transition-all duration-300 border
-          ${
-            activeSection === key
-              ? "bg-[#d97706] text-white border-[#b45309] shadow-md"
-              : "bg-[#fef3c7] text-[#78350f] border-[#fcd34d] hover:bg-[#fde68a] hover:border-[#fbbf24]"
-          }`}
-            >
-              {label}
-            </button>
-          ))}
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+
+          {isOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white border border-orange-200 rounded-lg shadow-lg py-2">
+              <Link
+                to="/donations"
+                className="block px-5 py-2 text-sm text-[#92400e] hover:bg-[#FFF7E6] hover:text-[#7c2d12] transition"
+                onClick={() => setIsOpen(false)}
+              >
+                💰 Donations
+              </Link>
+              <Link
+                to="/expenses"
+                className="block px-5 py-2 text-sm text-[#92400e] hover:bg-[#FFF7E6] hover:text-[#7c2d12] transition"
+                onClick={() => setIsOpen(false)}
+              >
+                🧾 Expenses
+              </Link>
+            </div>
+          )}
         </div>
       </div>
-      {/* Attendance & Delete Attendance Section */}
-      {(activeSection === "attendance" ||
-        activeSection === "deleteAttendance") && (
-        <div className="bg-[#fff9f0] p-6 rounded-2xl shadow-lg space-y-6 border border-[#fcd34d]">
-          <h2 className="text-2xl font-semibold text-[#9a3412]">
-            {activeSection === "attendance"
-              ? "Add Attendance"
-              : "Delete Attendance"}
-          </h2>
 
-          {renderSelectFields()}
+      
 
-          <div className="flex gap-3 items-center">
-            <input
-              ref={inputRef}
-              readOnly
-              type="text"
-              placeholder="Selected Roll Numbers"
-              className="border border-yellow-300 px-4 py-2 rounded w-full bg-[#fffefc] shadow-sm text-[#92400e] placeholder-[#b45309]"
-              value={Object.keys(attendanceData.attendance).join(", ")}
-            />
+      <div className="min-h-screen flex flex-col p-8 max-w-4xl mx-auto bg-white shadow-2xl space-y-10">
+        {showModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-80 text-center">
+              <p className="text-gray-800">{modalMessage}</p>
+              <button
+                onClick={() => setShowModal(false)}
+                className="mt-4 px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        )}
+        <h1 className="text-2xl mt-2 font-extrabold text-center text-orange-700">
+          SuperAdmin Dashboard
+        </h1>
+        {/* Section Buttons */}
+        <div className="w-full overflow-x-auto">
+          <div className="flex gap-4 px-4 py-3 min-w-max">
+            {sections.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setActiveSection(key)}
+                className={`whitespace-nowrap px-5 py-2.5 rounded-full font-medium transition-all duration-300 border
+         ${
+           activeSection === key
+             ? "bg-[#d97706] text-white border-[#b45309] shadow-md"
+             : "bg-[#fef3c7] text-[#78350f] border-[#fcd34d] hover:bg-[#fde68a] hover:border-[#fbbf24]"
+         }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* Attendance & Delete Attendance Section */}
+        {(activeSection === "attendance" ||
+          activeSection === "deleteAttendance") && (
+          <div className="bg-[#fff9f0] p-6 rounded-2xl shadow-lg space-y-6 border border-[#fcd34d]">
+            <h2 className="text-2xl font-semibold text-[#9a3412]">
+              {activeSection === "attendance"
+                ? "Add Attendance"
+                : "Delete Attendance"}
+            </h2>
+
+            {renderSelectFields()}
+
+            <div className="flex gap-3 items-center">
+              <input
+                ref={inputRef}
+                readOnly
+                type="text"
+                placeholder="Selected Roll Numbers"
+                className="border border-yellow-300 px-4 py-2 rounded w-full bg-[#fffefc] shadow-sm text-[#92400e] placeholder-[#b45309]"
+                value={Object.keys(attendanceData.attendance).join(", ")}
+              />
+              <button
+                onClick={() => setShowRollNumberPopup(true)}
+                className="px-4 py-2 bg-[#65a30d] hover:bg-[#4d7c0f] text-white font-medium rounded shadow"
+              >
+                +
+              </button>
+            </div>
+
+            {renderRollNoPopup()}
+
             <button
-              onClick={() => setShowRollNumberPopup(true)}
-              className="px-4 py-2 bg-[#65a30d] hover:bg-[#4d7c0f] text-white font-medium rounded shadow"
+              onClick={
+                activeSection === "attendance"
+                  ? addAttendance
+                  : deleteAttendance
+              }
+              className="w-full bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#ca8a04] hover:to-[#92400e] text-white font-semibold py-2 rounded-lg transition shadow-md"
             >
-              +
+              {activeSection === "attendance"
+                ? "Add Attendance"
+                : "Delete Attendance"}
             </button>
           </div>
+        )}
+        {/* Expense Section */}
+        {activeSection === "expense" && (
+          <div className="bg-[#fffaf0] p-6 rounded-2xl shadow-xl space-y-6 border border-[#fde68a]">
+            <h2 className="text-2xl font-semibold text-[#9a3412]">
+              Add Expense
+            </h2>
 
-          {renderRollNoPopup()}
-
-          <button
-            onClick={
-              activeSection === "attendance" ? addAttendance : deleteAttendance
-            }
-            className="w-full bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#ca8a04] hover:to-[#92400e] text-white font-semibold py-2 rounded-lg transition shadow-md"
-          >
-            {activeSection === "attendance"
-              ? "Add Attendance"
-              : "Delete Attendance"}
-          </button>
-        </div>
-      )}
-      {/* Expense Section */}
-      {activeSection === "expense" && (
-        <div className="bg-[#fffaf0] p-6 rounded-2xl shadow-xl space-y-6 border border-[#fde68a]">
-          <h2 className="text-2xl font-semibold text-[#9a3412]">Add Expense</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <select
-              className="border border-yellow-300 px-3 py-2 rounded bg-[#fffefc] shadow-sm text-[#78350f]"
-              value={expenseData.year}
-              onChange={(e) =>
-                setExpenseData({ ...expenseData, year: e.target.value })
-              }
-            >
-              {[...Array(10)].map((_, i) => {
-                const y = new Date().getFullYear() - 5 + i;
-                return <option key={y}>{y}</option>;
-              })}
-            </select>
-
-            <select
-              className="border border-yellow-300 px-3 py-2 rounded bg-[#fffefc] shadow-sm text-[#78350f]"
-              value={expenseData.month}
-              onChange={(e) =>
-                setExpenseData({ ...expenseData, month: e.target.value })
-              }
-            >
-              {monthNames.map((month) => (
-                <option key={month}>{month}</option>
-              ))}
-            </select>
-          </div>
-
-          <input
-            type="number"
-            placeholder="Enter Amount"
-            className="border border-yellow-300 px-3 py-2 rounded w-full bg-[#fffefc] shadow-sm text-[#92400e] placeholder-[#b45309]"
-            value={expenseData.amount}
-            onChange={(e) =>
-              setExpenseData({ ...expenseData, amount: e.target.value })
-            }
-          />
-
-          <input
-            type="text"
-            placeholder="Enter Description"
-            className="border border-yellow-300 px-3 py-2 rounded w-full bg-[#fffefc] shadow-sm text-[#92400e] placeholder-[#b45309]"
-            value={expenseData.description}
-            onChange={(e) =>
-              setExpenseData({ ...expenseData, description: e.target.value })
-            }
-          />
-
-          <button
-            onClick={addExpense}
-            className="w-full bg-gradient-to-r from-[#d97706] to-[#92400e] hover:from-[#fbbf24] hover:to-[#78350f] text-white font-semibold py-2 rounded-lg shadow transition"
-          >
-            Add Expense
-          </button>
-        </div>
-      )}
-      {/* Add Member Section */}
-      {activeSection === "editMember" && (
-        <div className="bg-[#fffaf0] p-6 rounded-2xl shadow-xl space-y-6 border border-[#fde68a]">
-          <h2 className="text-2xl font-semibold text-[#9a3412]">
-            Add / Edit Member
-          </h2>
-
-          <form onSubmit={handleEditMember} className="space-y-5">
-            {/* Select Roll Number */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-[#78350f] mb-1">
-                Select Roll No
-              </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <select
-                name="roll_no"
-                value={editMemberData.roll_no}
-                onChange={handleRollNoChange}
-                className="block w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f]"
-                required
+                className="border border-yellow-300 px-3 py-2 rounded bg-[#fffefc] shadow-sm text-[#78350f]"
+                value={expenseData.year}
+                onChange={(e) =>
+                  setExpenseData({ ...expenseData, year: e.target.value })
+                }
               >
-                <option value="">--Select Roll No--</option>
-                {Array.isArray(members) && members.length > 0 ? (
-                  <>
-                    {members.map((member) => (
-                      <option key={member.roll_no} value={member.roll_no}>
-                        {member.roll_no}
-                      </option>
-                    ))}
-                    <option value={members.length + 1}>
-                      {members.length + 1}
-                    </option>
-                  </>
-                ) : (
-                  <option value="1">Add New Roll No: 1</option>
-                )}
+                {[...Array(10)].map((_, i) => {
+                  const y = new Date().getFullYear() - 5 + i;
+                  return <option key={y}>{y}</option>;
+                })}
+              </select>
+
+              <select
+                className="border border-yellow-300 px-3 py-2 rounded bg-[#fffefc] shadow-sm text-[#78350f]"
+                value={expenseData.month}
+                onChange={(e) =>
+                  setExpenseData({ ...expenseData, month: e.target.value })
+                }
+              >
+                {monthNames.map((month) => (
+                  <option key={month}>{month}</option>
+                ))}
               </select>
             </div>
 
-            {/* Input fields */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-[#78350f] mb-1">
-                First Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={editMemberData.name}
-                onChange={handleEditMemberData}
-                className="block w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f] placeholder-[#b45309]"
-                required
-                placeholder="Enter First Name"
-              />
-            </div>
+            <input
+              type="number"
+              placeholder="Enter Amount"
+              className="border border-yellow-300 px-3 py-2 rounded w-full bg-[#fffefc] shadow-sm text-[#92400e] placeholder-[#b45309]"
+              value={expenseData.amount}
+              onChange={(e) =>
+                setExpenseData({ ...expenseData, amount: e.target.value })
+              }
+            />
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-[#78350f] mb-1">
-                Last Name
-              </label>
-              <input
-                type="text"
-                name="last_name"
-                value={editMemberData.last_name}
-                onChange={handleEditMemberData}
-                className="block w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f] placeholder-[#b45309]"
-                placeholder="Enter Last Name"
-              />
-            </div>
+            <input
+              type="text"
+              placeholder="Enter Description"
+              className="border border-yellow-300 px-3 py-2 rounded w-full bg-[#fffefc] shadow-sm text-[#92400e] placeholder-[#b45309]"
+              value={expenseData.description}
+              onChange={(e) =>
+                setExpenseData({ ...expenseData, description: e.target.value })
+              }
+            />
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-[#78350f] mb-1">
-                Phone Number
-              </label>
-              <input
-                type="text"
-                name="phone_no"
-                value={editMemberData.phone_no}
-                onChange={handleEditMemberData}
-                className="block w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f] placeholder-[#b45309]"
-                required
-                placeholder="Enter Phone Number"
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-[#78350f] mb-1">
-                Address
-              </label>
-              <input
-                name="address"
-                value={editMemberData.address}
-                onChange={handleEditMemberData}
-                className="block w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f] placeholder-[#b45309]"
-                required
-                placeholder="Enter Address"
-              />
-            </div>
-
-            {/* Upload Image Field */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-[#78350f] mb-1">
-                Upload Image
-              </label>
-              <div className="relative">
-                <input
-                  type="file"
-                  name="image"
-                  id="imageUpload"
-                  onChange={handleUploadedImages}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  accept="image/*"
-                />
-                <div className="flex items-center justify-center px-4 py-2 border border-yellow-300 bg-[#fffdf8] rounded cursor-pointer shadow-sm text-[#78350f] hover:bg-yellow-100 transition">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 mr-2 text-[#92400e]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16v1a1 1 0 001 1h14a1 1 0 001-1v-1m-4-4l-4-4m0 0l-4 4m4-4v12"
-                    />
-                  </svg>
-                  <span>Choose Image</span>
-                </div>
-              </div>
-
-              {previewImage && (
-                <div className="mt-4">
-                  <img
-                    src={previewImage}
-                    alt="Preview"
-                    className="w-32 h-32 object-cover rounded-lg border border-yellow-300 shadow"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Submit Button */}
             <button
-              type="submit"
+              onClick={addExpense}
               className="w-full bg-gradient-to-r from-[#d97706] to-[#92400e] hover:from-[#fbbf24] hover:to-[#78350f] text-white font-semibold py-2 rounded-lg shadow transition"
             >
-              Update Member
+              Add Expense
             </button>
-          </form>
-        </div>
-      )}
-      {/* Delete Member */}
-      {activeSection === "deleteMember" && (
-        <div className="bg-[#fff8e1] p-6 rounded-2xl shadow-xl space-y-6 border border-[#fcd34d]">
-          <h2 className="text-2xl font-semibold text-[#9a3412]">
-            Remove Member
-          </h2>
+          </div>
+        )}
+        {/* Add Member Section */}
+        {activeSection === "editMember" && (
+          <div className="bg-[#fffaf0] p-6 rounded-2xl shadow-xl space-y-6 border border-[#fde68a]">
+            <h2 className="text-2xl font-semibold text-[#9a3412]">
+              Add / Edit Member
+            </h2>
 
-          <select
-            className="w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f] focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            value={removeMember.rollNo}
-            onChange={(e) =>
-              setRemoveMember({ ...removeMember, rollNo: e.target.value })
-            }
-          >
-            <option value="">Select Roll Number</option>
-            {availableRollNumbers.map((rollNo) => (
-              <option key={rollNo} value={rollNo}>
-                {rollNo}
-              </option>
-            ))}
-          </select>
+            <form onSubmit={handleEditMember} className="space-y-5">
+              {/* Select Roll Number */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-[#78350f] mb-1">
+                  Select Roll No
+                </label>
+                <select
+                  name="roll_no"
+                  value={editMemberData.roll_no}
+                  onChange={handleRollNoChange}
+                  className="block w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f]"
+                  required
+                >
+                  <option value="">--Select Roll No--</option>
+                  {Array.isArray(members) && members.length > 0 ? (
+                    <>
+                      {members.map((member) => (
+                        <option key={member.roll_no} value={member.roll_no}>
+                          {member.roll_no}
+                        </option>
+                      ))}
+                      <option value={members.length + 1}>
+                        {members.length + 1}
+                      </option>
+                    </>
+                  ) : (
+                    <option value="1">Add New Roll No: 1</option>
+                  )}
+                </select>
+              </div>
 
-          <button
-            onClick={deleteMember}
-            className="w-full bg-gradient-to-r from-[#dc2626] to-[#7f1d1d] hover:from-[#ef4444] hover:to-[#991b1b] text-white font-semibold py-2 rounded-lg shadow transition"
-          >
-            Remove Member
-          </button>
-        </div>
-      )}
-      {/* Donation Section */}
-      {activeSection === "donation" && (
-        <div className="bg-[#fff7e6] p-6 rounded-2xl shadow-xl space-y-6 border border-[#fcd34d]">
-          <h2 className="text-2xl font-semibold text-[#9a3412]">
-            Add Donation
-          </h2>
+              {/* Input fields */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-[#78350f] mb-1">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={editMemberData.name}
+                  onChange={handleEditMemberData}
+                  className="block w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f] placeholder-[#b45309]"
+                  required
+                  placeholder="Enter First Name"
+                />
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-[#78350f] mb-1">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  name="last_name"
+                  value={editMemberData.last_name}
+                  onChange={handleEditMemberData}
+                  className="block w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f] placeholder-[#b45309]"
+                  placeholder="Enter Last Name"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-[#78350f] mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  name="phone_no"
+                  value={editMemberData.phone_no}
+                  onChange={handleEditMemberData}
+                  className="block w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f] placeholder-[#b45309]"
+                  required
+                  placeholder="Enter Phone Number"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-[#78350f] mb-1">
+                  Address
+                </label>
+                <input
+                  name="address"
+                  value={editMemberData.address}
+                  onChange={handleEditMemberData}
+                  className="block w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f] placeholder-[#b45309]"
+                  required
+                  placeholder="Enter Address"
+                />
+              </div>
+
+              {/* Upload Image Field */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-[#78350f] mb-1">
+                  Upload Image
+                </label>
+                <div className="relative">
+                  <input
+                    type="file"
+                    name="image"
+                    id="imageUpload"
+                    onChange={handleUploadedImages}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    accept="image/*"
+                  />
+                  <div className="flex items-center justify-center px-4 py-2 border border-yellow-300 bg-[#fffdf8] rounded cursor-pointer shadow-sm text-[#78350f] hover:bg-yellow-100 transition">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 mr-2 text-[#92400e]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a1 1 0 001 1h14a1 1 0 001-1v-1m-4-4l-4-4m0 0l-4 4m4-4v12"
+                      />
+                    </svg>
+                    <span>Choose Image</span>
+                  </div>
+                </div>
+
+                {previewImage && (
+                  <div className="mt-4">
+                    <img
+                      src={previewImage}
+                      alt="Preview"
+                      className="w-32 h-32 object-cover rounded-lg border border-yellow-300 shadow"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-[#d97706] to-[#92400e] hover:from-[#fbbf24] hover:to-[#78350f] text-white font-semibold py-2 rounded-lg shadow transition"
+              >
+                Update Member
+              </button>
+            </form>
+          </div>
+        )}
+        {/* Delete Member */}
+        {activeSection === "deleteMember" && (
+          <div className="bg-[#fff8e1] p-6 rounded-2xl shadow-xl space-y-6 border border-[#fcd34d]">
+            <h2 className="text-2xl font-semibold text-[#9a3412]">
+              Remove Member
+            </h2>
+
             <select
-              className="border px-4 py-2 rounded bg-[#fffdf8] shadow-sm text-[#6b4226] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
-              value={donationData.year}
+              className="w-full px-4 py-2 border border-yellow-300 rounded bg-[#fffdf8] shadow-sm text-[#78350f] focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              value={removeMember.rollNo}
               onChange={(e) =>
-                setDonationData({ ...donationData, year: e.target.value })
+                setRemoveMember({ ...removeMember, rollNo: e.target.value })
               }
             >
-              {[...Array(10)].map((_, i) => {
-                const y = new Date().getFullYear() - 5 + i;
-                return <option key={y}>{y}</option>;
-              })}
-            </select>
-
-            <select
-              className="border px-4 py-2 rounded bg-[#fffdf8] shadow-sm text-[#6b4226] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
-              value={donationData.month}
-              onChange={(e) =>
-                setDonationData({ ...donationData, month: e.target.value })
-              }
-            >
-              {monthNames.map((month) => (
-                <option key={month}>{month}</option>
+              <option value="">Select Roll Number</option>
+              {availableRollNumbers.map((rollNo) => (
+                <option key={rollNo} value={rollNo}>
+                  {rollNo}
+                </option>
               ))}
             </select>
+
+            <button
+              onClick={deleteMember}
+              className="w-full bg-gradient-to-r from-[#dc2626] to-[#7f1d1d] hover:from-[#ef4444] hover:to-[#991b1b] text-white font-semibold py-2 rounded-lg shadow transition"
+            >
+              Remove Member
+            </button>
           </div>
+        )}
+        {/* Donation Section */}
+        {activeSection === "donation" && (
+          <div className="bg-[#fff7e6] p-6 rounded-2xl shadow-xl space-y-6 border border-[#fcd34d]">
+            <h2 className="text-2xl font-semibold text-[#9a3412]">
+              Add Donation
+            </h2>
 
-          <select
-            className="w-full border px-4 py-2 rounded bg-[#fffdf8] shadow-sm text-[#6b4226] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
-            value={donationData.rollNo}
-            onChange={(e) =>
-              setDonationData({ ...donationData, rollNo: e.target.value })
-            }
-          >
-            <option value="">Select Roll Number</option>
-            {availableRollNumbers.map((rollNo) => (
-              <option key={rollNo} value={rollNo}>
-                {rollNo}
-              </option>
-            ))}
-          </select>
-
-          <input
-            type="number"
-            placeholder="Enter Amount"
-            className="border px-4 py-2 rounded w-full bg-[#fffdf8] shadow-sm text-[#6b4226] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
-            value={donationData.amount}
-            onChange={(e) =>
-              setDonationData({ ...donationData, amount: e.target.value })
-            }
-          />
-
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="donation"
-                name="type"
-                checked={donationData.type === "donation"}
-                onChange={() =>
-                  setDonationData({ ...donationData, type: "donation" })
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <select
+                className="border px-4 py-2 rounded bg-[#fffdf8] shadow-sm text-[#6b4226] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
+                value={donationData.year}
+                onChange={(e) =>
+                  setDonationData({ ...donationData, year: e.target.value })
                 }
-                className="h-6 w-6 text-[#d97706] border-gray-300 rounded-full focus:ring-[#d97706] transition duration-200"
-              />
-              <label htmlFor="donation" className="text-sm text-[#6b4226]">
-                Donation
-              </label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="fine"
-                name="type"
-                checked={donationData.type === "fine"}
-                onChange={() =>
-                  setDonationData({ ...donationData, type: "fine" })
+              >
+                {[...Array(10)].map((_, i) => {
+                  const y = new Date().getFullYear() - 5 + i;
+                  return <option key={y}>{y}</option>;
+                })}
+              </select>
+
+              <select
+                className="border px-4 py-2 rounded bg-[#fffdf8] shadow-sm text-[#6b4226] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
+                value={donationData.month}
+                onChange={(e) =>
+                  setDonationData({ ...donationData, month: e.target.value })
                 }
-                className="h-6 w-6 text-[#f44336] border-gray-300 rounded-full focus:ring-[#f44336] transition duration-200"
-              />
-              <label htmlFor="fine" className="text-sm text-[#6b4226]">
-                Fine
-              </label>
+              >
+                {monthNames.map((month) => (
+                  <option key={month}>{month}</option>
+                ))}
+              </select>
             </div>
+
+            <select
+              className="w-full border px-4 py-2 rounded bg-[#fffdf8] shadow-sm text-[#6b4226] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
+              value={donationData.rollNo}
+              onChange={(e) =>
+                setDonationData({ ...donationData, rollNo: e.target.value })
+              }
+            >
+              <option value="">Select Roll Number</option>
+              {availableRollNumbers.map((rollNo) => (
+                <option key={rollNo} value={rollNo}>
+                  {rollNo}
+                </option>
+              ))}
+            </select>
+
+            <input
+              type="number"
+              placeholder="Enter Amount"
+              className="border px-4 py-2 rounded w-full bg-[#fffdf8] shadow-sm text-[#6b4226] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
+              value={donationData.amount}
+              onChange={(e) =>
+                setDonationData({ ...donationData, amount: e.target.value })
+              }
+            />
+
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="donation"
+                  name="type"
+                  checked={donationData.type === "donation"}
+                  onChange={() =>
+                    setDonationData({ ...donationData, type: "donation" })
+                  }
+                  className="h-6 w-6 text-[#d97706] border-gray-300 rounded-full focus:ring-[#d97706] transition duration-200"
+                />
+                <label htmlFor="donation" className="text-sm text-[#6b4226]">
+                  Donation
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="fine"
+                  name="type"
+                  checked={donationData.type === "fine"}
+                  onChange={() =>
+                    setDonationData({ ...donationData, type: "fine" })
+                  }
+                  className="h-6 w-6 text-[#f44336] border-gray-300 rounded-full focus:ring-[#f44336] transition duration-200"
+                />
+                <label htmlFor="fine" className="text-sm text-[#6b4226]">
+                  Fine
+                </label>
+              </div>
+            </div>
+
+            <button
+              onClick={addDonation}
+              className="w-full bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#ca8a04] hover:to-[#92400e] text-white font-semibold py-2 rounded-lg transition shadow-md"
+              disabled={!donationData.type} // Disable button if no type is selected
+            >
+              Add Donation
+            </button>
           </div>
-
-          <button
-            onClick={addDonation}
-            className="w-full bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#ca8a04] hover:to-[#92400e] text-white font-semibold py-2 rounded-lg transition shadow-md"
-            disabled={!donationData.type} // Disable button if no type is selected
-          >
-            Add Donation
-          </button>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   );
 };
 
