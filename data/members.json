@@ -119,9 +119,8 @@
     "roll_no": 16,
     "name": "Neeraj",
     "last_name": "Palwal",
-    "phone_no": "9719344739",
-    "address": "Kosi kalan",
-    "img": "16.jpg"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 17,
@@ -193,8 +192,9 @@
     "roll_no": 26,
     "name": "Neeraj",
     "last_name": "Yadav",
-    "phone_no": "",
-    "address": ""
+    "phone_no": "9297576138",
+    "address": "Lakkadpur, faridabad ",
+    "img": "26.jpg"
   },
   {
     "roll_no": 27,
@@ -237,9 +237,8 @@
     "roll_no": 32,
     "name": "Saurabh",
     "last_name": "Tiagaon",
-    "phone_no": "9911943363",
-    "address": "Near Bhawani Mandir VPO Tigaon Distt faridabad",
-    "img": "32.jpg"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 33,
@@ -483,9 +482,8 @@
     "roll_no": 66,
     "name": "Akshay",
     "last_name": "",
-    "phone_no": "8802478888",
-    "address": "Rajiv colony sector 56",
-    "img": "66.jpg"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 67,
@@ -689,15 +687,15 @@
   },
   {
     "roll_no": 95,
-    "name": "Kailash",
-    "last_name": "Atali",
+    "name": "",
+    "last_name": "",
     "phone_no": "",
     "address": ""
   },
   {
     "roll_no": 96,
-    "name": "Mahendra",
-    "last_name": "Atali",
+    "name": "",
+    "last_name": "",
     "phone_no": "",
     "address": ""
   },
