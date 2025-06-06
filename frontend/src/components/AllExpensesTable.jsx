@@ -8,7 +8,7 @@ const AllExpensesTable = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("https://langar-db-csvv.onrender.com/expenses");
+        const res = await fetch("http://localhost:5000/expenses");
         const json = await res.json();
         const parsedData = [];
 

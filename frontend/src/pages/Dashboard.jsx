@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AllExpensesTable from "../components/AllExpensesTable";
 import DonationsTable from "../components/DonationsTable";
+import FinanceTable from "../components/FinanceTable";
 import { Link } from "react-router-dom";
 import { Users, ChevronDown } from "lucide-react";
 
@@ -34,7 +35,7 @@ export default function AttendanceTable() {
 
         // Fetch attendance data
         const attendanceRes = await fetch(
-          "https://langar-db-csvv.onrender.com/attendance"
+          "http://localhost:5000/attendance"
         );
         const attendance = await attendanceRes.json();
         const result = attendance[0];
@@ -61,7 +62,7 @@ export default function AttendanceTable() {
 
         // Fetch member details and format them as roll_no => full name
         const membersRes = await fetch(
-          "https://langar-db-csvv.onrender.com/member-full-details"
+          "http://localhost:5000/member-full-details"
         );
         const members = await membersRes.json();
         const formatted = {};

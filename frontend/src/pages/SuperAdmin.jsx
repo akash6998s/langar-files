@@ -4,7 +4,6 @@ import credentials from "../data/admin.json";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
-
 const SuperAdmin = () => {
   const monthNames = [
     "January",
@@ -111,9 +110,7 @@ const SuperAdmin = () => {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const res = await fetch(
-          "https://langar-db-csvv.onrender.com/member-full-details"
-        );
+        const res = await fetch("http://localhost:5000/member-full-details");
         const data = await res.json();
         if (data && Array.isArray(data)) {
           setMembers(data);
@@ -132,9 +129,7 @@ const SuperAdmin = () => {
     const fetchRollNumbers = async () => {
       try {
         setLoading(true);
-        const res = await fetch(
-          "https://langar-db-csvv.onrender.com/member-full-details"
-        );
+        const res = await fetch("http://localhost:5000/member-full-details");
         const data = await res.json();
         setAvailableRollNumbers(data.map((m) => m.roll_no));
       } catch (error) {
@@ -242,13 +237,10 @@ const SuperAdmin = () => {
     try {
       setLoading(true);
 
-      const response = await fetch(
-        "https://langar-db-csvv.onrender.com/edit-member",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch("http://localhost:5000/edit-member", {
+        method: "POST",
+        body: formData,
+      });
 
       if (!response.ok) {
         throw new Error("Failed to update member");
@@ -308,15 +300,12 @@ const SuperAdmin = () => {
 
     try {
       setLoading(true);
-      const res = await axios.post(
-        "https://langar-db-csvv.onrender.com/update-attendance",
-        {
-          attendance: filtered,
-          month,
-          year: Number(year),
-          day: Number(day),
-        }
-      );
+      const res = await axios.post("http://localhost:5000/update-attendance", {
+        attendance: filtered,
+        month,
+        year: Number(year),
+        day: Number(day),
+      });
 
       setModalMessage(res.data.message || "Attendance updated successfully!");
       setShowModal(true);
@@ -344,15 +333,12 @@ const SuperAdmin = () => {
     try {
       setLoading(true);
 
-      const res = await axios.post(
-        "https://langar-db-csvv.onrender.com/delete-attendance",
-        {
-          attendance: filtered,
-          month,
-          year: Number(year),
-          day: Number(day),
-        }
-      );
+      const res = await axios.post("http://localhost:5000/delete-attendance", {
+        attendance: filtered,
+        month,
+        year: Number(year),
+        day: Number(day),
+      });
 
       setModalMessage(res.data.message || "Attendance deleted successfully!");
       setShowModal(true);
@@ -379,15 +365,12 @@ const SuperAdmin = () => {
     try {
       setLoading(true);
 
-      const res = await axios.post(
-        "https://langar-db-csvv.onrender.com/add-expense",
-        {
-          amount: Number(amount),
-          description: description.trim(),
-          month,
-          year: Number(year),
-        }
-      );
+      const res = await axios.post("http://localhost:5000/add-expense", {
+        amount: Number(amount),
+        description: description.trim(),
+        month,
+        year: Number(year),
+      });
 
       setModalMessage(res.data.message || "Expense added successfully!");
       setShowModal(true);
@@ -414,12 +397,9 @@ const SuperAdmin = () => {
     try {
       setLoading(true);
 
-      const res = await axios.post(
-        "https://langar-db-csvv.onrender.com/delete-member",
-        {
-          rollNo: parseInt(rollNo),
-        }
-      );
+      const res = await axios.post("http://localhost:5000/delete-member", {
+        rollNo: parseInt(rollNo),
+      });
 
       setModalMessage(res.data.message || "Member deleted successfully!");
       setShowModal(true);
@@ -434,9 +414,9 @@ const SuperAdmin = () => {
   };
 
   const addDonation = async () => {
-    const { amount, rollNo, month, year, type } = donationData;
+    const { amount, rollNo, month, year } = donationData;
 
-    if (!rollNo || !amount || !month || !year || !type) {
+    if (!rollNo || !amount || !month || !year) {
       setModalMessage("All fields are required.");
       setShowModal(true);
       return;
@@ -445,20 +425,16 @@ const SuperAdmin = () => {
     try {
       setLoading(true);
 
-      const res = await axios.post(
-        "https://langar-db-csvv.onrender.com/update-donations",
-        {
-          rollNo,
-          amount: Number(amount),
-          month,
-          year: Number(year),
-          type,
-        }
-      );
+      const res = await axios.post("http://localhost:5000/update-donations", {
+        rollNo,
+        amount: Number(amount),
+        month,
+        year: Number(year),
+      });
 
       setModalMessage(res.data.message || "Donation added successfully!");
       setShowModal(true);
-      setDonationData({ ...donationData, amount: "", rollNo: "", type: "" });
+      setDonationData({ ...donationData, amount: "", rollNo: "" });
     } catch (error) {
       console.error("Error adding donation:", error);
       setModalMessage("Failed to add donation. Please try again.");
@@ -631,8 +607,6 @@ const SuperAdmin = () => {
           )}
         </div>
       </div>
-
-      
 
       <div className="min-h-screen flex flex-col p-8 max-w-4xl mx-auto bg-white shadow-2xl space-y-10">
         {showModal && (
@@ -1017,43 +991,15 @@ const SuperAdmin = () => {
               }
             />
 
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  id="donation"
-                  name="type"
-                  checked={donationData.type === "donation"}
-                  onChange={() =>
-                    setDonationData({ ...donationData, type: "donation" })
-                  }
-                  className="h-6 w-6 text-[#d97706] border-gray-300 rounded-full focus:ring-[#d97706] transition duration-200"
-                />
-                <label htmlFor="donation" className="text-sm text-[#6b4226]">
-                  Donation
-                </label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  id="fine"
-                  name="type"
-                  checked={donationData.type === "fine"}
-                  onChange={() =>
-                    setDonationData({ ...donationData, type: "fine" })
-                  }
-                  className="h-6 w-6 text-[#f44336] border-gray-300 rounded-full focus:ring-[#f44336] transition duration-200"
-                />
-                <label htmlFor="fine" className="text-sm text-[#6b4226]">
-                  Fine
-                </label>
-              </div>
-            </div>
-
             <button
               onClick={addDonation}
               className="w-full bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#ca8a04] hover:to-[#92400e] text-white font-semibold py-2 rounded-lg transition shadow-md"
-              disabled={!donationData.type} // Disable button if no type is selected
+              disabled={
+                !donationData.amount ||
+                !donationData.rollNo ||
+                !donationData.month ||
+                !donationData.year
+              }
             >
               Add Donation
             </button>

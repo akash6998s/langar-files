@@ -192,9 +192,8 @@
     "roll_no": 26,
     "name": "Neeraj",
     "last_name": "Yadav",
-    "phone_no": "9297576138",
-    "address": "Lakkadpur, faridabad ",
-    "img": "26.jpg"
+    "phone_no": "",
+    "address": ""
   },
   {
     "roll_no": 27,
@@ -687,15 +686,15 @@
   },
   {
     "roll_no": 95,
-    "name": "",
-    "last_name": "",
+    "name": "Kailash",
+    "last_name": "Atali",
     "phone_no": "",
     "address": ""
   },
   {
     "roll_no": 96,
-    "name": "",
-    "last_name": "",
+    "name": "Mahendra",
+    "last_name": "Atali",
     "phone_no": "",
     "address": ""
   },
