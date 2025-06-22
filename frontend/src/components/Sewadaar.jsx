@@ -10,7 +10,7 @@ const Sewadaar = () => {
       try {
         setLoading(true);
         const res = await fetch(
-          "http://localhost:5000/member-full-details"
+          "https://langar-db-csvv.onrender.com/member-full-details"
         );
         const members = await res.json();
         const formatted = members.map((s) => ({
@@ -82,7 +82,7 @@ const Sewadaar = () => {
             <div className="flex flex-col items-center relative">
               <div className="w-24 h-24 rounded-full border-4 border-[#d97706] shadow-inner overflow-hidden mb-4 bg-white">
                 <img
-                  src={`http://localhost:5000/uploads/${sewadaar.img}`}
+                  src={`https://langar-db-csvv.onrender.com/uploads/${sewadaar.img}`}
                   alt={sewadaar.fullName}
                   className="w-full h-full object-cover"
                 />

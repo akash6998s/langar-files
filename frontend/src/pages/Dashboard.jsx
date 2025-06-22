@@ -35,7 +35,7 @@ export default function AttendanceTable() {
 
         // Fetch attendance data
         const attendanceRes = await fetch(
-          "http://localhost:5000/attendance"
+          "https://langar-db-csvv.onrender.com/attendance"
         );
         const attendance = await attendanceRes.json();
         const result = attendance[0];
@@ -62,7 +62,7 @@ export default function AttendanceTable() {
 
         // Fetch member details and format them as roll_no => full name
         const membersRes = await fetch(
-          "http://localhost:5000/member-full-details"
+          "https://langar-db-csvv.onrender.com/member-full-details"
         );
         const members = await membersRes.json();
         const formatted = {};
