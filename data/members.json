@@ -277,17 +277,19 @@
   },
   {
     "roll_no": 38,
-    "name": "Anup",
+    "name": "Anoop",
     "last_name": "Sgm",
-    "phone_no": "",
-    "address": ""
+    "phone_no": "8178829031",
+    "address": "H no.FCA-1327, Block-C, SGM nagar, Faridabad",
+    "img": "38.jpg"
   },
   {
     "roll_no": 39,
     "name": "Akshit",
     "last_name": "",
-    "phone_no": "",
-    "address": ""
+    "phone_no": "8178829031",
+    "address": "H no.FCA-1327, Block-C, SGM nagar, Faridabad ",
+    "img": "39.jpg"
   },
   {
     "roll_no": 40,
